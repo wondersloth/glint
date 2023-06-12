@@ -57,7 +57,10 @@ export default class TransformManager {
         allDiagnostics.push(rewrittenDiagnostic);
       }
 
-      if (appliedDirective?.kind === 'expect-error') {
+      if (
+        appliedDirective?.kind === 'expect-error' ||
+        appliedDirective?.kind === 'expect-error-next-element'
+      ) {
         unusedExpectErrors.delete(appliedDirective);
       }
     }
@@ -67,7 +70,7 @@ export default class TransformManager {
         createTransformDiagnostic(
           this.ts,
           directive.source,
-          `Unused '@glint-expect-error' directive.`,
+          `Unused '@glint-${directive.kind}' directive.`,
           directive.location
         )
       );
@@ -303,9 +306,9 @@ export default class TransformManager {
     return transformInfos.flatMap((transformInfo) => {
       if (!transformInfo.transformedModule) return [];
 
-      return transformInfo.transformedModule.directives.filter(
-        (directive) => directive.kind === 'expect-error'
-      );
+      return transformInfo.transformedModule.directives.filter((directive) => {
+        return directive.kind === 'expect-error' || directive.kind === 'expect-error-next-element';
+      });
     });
   }
 

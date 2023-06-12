@@ -1,4 +1,4 @@
-import { AST } from '@glimmer/syntax';
+import { AST, Walker, traverse } from '@glimmer/syntax';
 import { unreachable, assert } from '../util.js';
 import { EmbeddingSyntax, mapTemplateContents, RewriteResult } from './map-template-contents.js';
 import ScopeStack from './scope-stack.js';
@@ -133,6 +133,39 @@ export function templateToTypescript(
       emit.nothing(node, new TextContent());
     }
 
+    function getNextSibling(ast: AST.Node, targetNode: AST.Node): AST.Node {
+      const walker = new Walker();
+
+      let nextSibling;
+
+      walker.visit(ast, (node, walker) => {
+        if (isMatch(node, targetNode)) {
+          const stack = walker.stack.reverse();
+          stack.shift();
+
+          for (const visited of stack) {
+            if (!visited) {
+              continue;
+            }
+            // @ts-expect-error visited is type unknown may not have children
+            const children: [AST.Node] | undefined = visited?.children;
+            if (children) {
+              const index = children.findIndex((child) => isMatch(child, targetNode));
+              nextSibling = children
+                .slice(index + 1)
+                .filter((node: AST.Node) => node.type !== 'TextNode')[0];
+            }
+          }
+        }
+      });
+
+      if (!nextSibling) {
+        throw new Error('Unable to find nextSibling to node');
+      }
+
+      return nextSibling;
+    }
+
     function emitComment(node: AST.MustacheCommentStatement | AST.CommentStatement): void {
       let text = node.value.trim();
       let match = /^@glint-([a-z-]+)/i.exec(text);
@@ -140,19 +173,26 @@ export function templateToTypescript(
         return emit.nothing(node);
       }
 
+      let targetNode: AST.Node = node;
+
       let kind = match[1];
-      let location = rangeForNode(node);
+      let location = rangeForNode(targetNode);
+
       if (kind === 'ignore') {
-        record.directive(kind, location, rangeForLine(node.loc.end.line + 1));
+        record.directive(kind, location, rangeForLine(targetNode.loc.end.line + 1));
       } else if (kind === 'expect-error') {
-        record.directive(kind, location, rangeForLine(node.loc.end.line + 1));
+        record.directive(kind, location, rangeForLine(targetNode.loc.end.line + 1));
+      } else if (kind === 'expect-error-next-element') {
+        // @ts-expect-error ast may be null
+        const nextSibling = getNextSibling(ast, node);
+        record.directive(kind, location, rangeForNode(nextSibling));
       } else if (kind === 'nocheck') {
         record.directive('ignore', location, { start: 0, end: template.length - 1 });
       } else {
         record.error(`Unknown directive @glint-${kind}`, location);
       }
 
-      emit.forNode(node, () => {
+      emit.forNode(targetNode, () => {
         emit.text(`// @glint-${kind}`);
         emit.newline();
       });
@@ -1292,6 +1332,10 @@ export function templateToTypescript(
 
     function isSafeKey(key: string): boolean {
       return /^[a-z_$][a-z0-9_$]*$/i.test(key);
+    }
+
+    function isMatch(a: AST.Node, b: AST.Node): boolean {
+      return a.type === b.type && a.loc === b.loc;
     }
   });
 }

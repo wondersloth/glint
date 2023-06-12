@@ -179,6 +179,38 @@ describe('Transform: rewriteTemplate', () => {
       ]);
     });
 
+    test('expect-error-next-element', () => {
+      let template = stripIndent`
+      <div>
+        {{! @glint-expect-error-next-element: this is fine }}
+        <span class="some-style
+          {{concat @arg1 "foo" "bar" "baz"}}
+          " id="end">
+        </span>
+      </div>
+      `;
+
+      let { result, errors } = templateToTypescript(template, {
+        typesModule: '@glint/template',
+      });
+
+      expect(errors).toEqual([]);
+
+      expect(result?.directives).toEqual([
+        {
+          kind: 'expect-error-next-element',
+          location: {
+            start: template.indexOf('{{! @glint-expect-error-next-element'),
+            end: template.indexOf('this is fine }}') + 'this is fine }}'.length,
+          },
+          areaOfEffect: {
+            start: template.indexOf('<span class="some-style'),
+            end: template.indexOf('</span>') + '</span>'.length,
+          },
+        },
+      ]);
+    });
+
     test('unknown type', () => {
       let template = stripIndent`
         {{! @glint-check }}

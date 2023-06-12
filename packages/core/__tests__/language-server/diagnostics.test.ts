@@ -415,4 +415,93 @@ describe('Language Server: Diagnostics', () => {
       ]
     `);
   });
+
+  test.only('honors @glint-expect-error-next-element', () => {
+    let componentA = stripIndent`
+      import Component, { hbs } from '@glimmerx/component';
+      import { helper } from '@glimmerx/helper';
+      
+      const concat = helper((positional) => {
+        return positional.join('');
+      });
+
+      export default class ComponentA extends Component {
+        public static template = hbs\`
+          {{! @glint-expect-error-next-element: this is fine }}
+          <span class="some-style
+            {{concat @someArg "foo" "bar" "baz"}}
+            " id="end">
+          </span>
+        \`;
+      }
+    `;
+
+    project.write('component-a.ts', componentA);
+
+    let server = project.startLanguageServer();
+
+    expect(
+      server.getDiagnostics(project.fileURI('component-a.ts')),
+      'the error to be suppressed'
+    ).toEqual([]);
+
+    // Update file and remove error
+    server.openFile(project.fileURI('component-a.ts'), componentA);
+    server.updateFile(
+      project.fileURI('component-a.ts'),
+      componentA.replace('{{! @glint-expect-error-next-element }}', '')
+    );
+
+    // Expect the diagnostic error to be reported
+    expect(server.getDiagnostics(project.fileURI('component-a.ts'))).toMatchInlineSnapshot(`
+      [
+        {
+          "code": 2339,
+          "message": "Property 'someArg' does not exist on type '{}'.",
+          "range": {
+            "end": {
+              "character": 23,
+              "line": 11,
+            },
+            "start": {
+              "character": 16,
+              "line": 11,
+            },
+          },
+          "severity": 1,
+          "source": "glint",
+          "tags": [],
+        },
+      ]
+    `);
+
+    server.updateFile(project.fileURI('component-a.ts'), componentA);
+
+    expect(server.getDiagnostics(project.fileURI('component-a.ts'))).toEqual([]);
+
+    // Update file to remove bad arg to see if error looks to be unused
+    server.updateFile(project.fileURI('component-a.ts'), componentA.replace('{{@someArg}}', ''));
+
+    expect(server.getDiagnostics(project.fileURI('component-a.ts'))).toMatchInlineSnapshot(`
+      [
+        {
+          "code": 0,
+          "message": "Unused '@glint-expect-error-next-element' directive.",
+          "range": {
+            "end": {
+              "character": 30,
+              "line": 4,
+            },
+            "start": {
+              "character": 4,
+              "line": 4,
+            },
+          },
+          "severity": 1,
+          "source": "glint",
+          "tags": [],
+        },
+      ]
+    `);
+  });
 });

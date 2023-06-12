@@ -24,6 +24,11 @@ describe('Transform: Debug utilities', () => {
           {{#each (array "world" "planet" "universe") as |target index|}}
             #{{add index 1}}: {{this.message}}, {{target}}!
           {{/each}}
+          
+          {{! @glint-expect-error-next-statement: no @someArg arg }}
+          <div class="some-style
+            {{concat @someArg "foo" "bar" "baz"}}">
+          </div>
         `,
       };
 
@@ -37,12 +42,12 @@ describe('Transform: Debug utilities', () => {
         "TransformedModule
 
         | Mapping: TemplateEmbedding
-        |  hbs(0:123):   {{#each (array \\"world\\" \\"planet\\" \\"universe\\") as |target index|}}\\\\n  #{{add index 1}}: {{this.message}}, {{target}}!\\\\n{{/each}}
-        |  ts(131:685):  ({} as typeof import(\\"@glint/environment-ember-loose/-private/dsl\\")).templateForBackingValue(this, function(𝚪, χ: typeof import(\\"@glint/environment-ember-loose/-private/dsl\\")) {\\\\n  {\\\\n    const 𝛄 = χ.emitComponent(χ.resolve(χ.Globals[\\"each\\"])([\\"world\\", \\"planet\\", \\"universe\\"]));\\\\n    {\\\\n      const [target, index] = 𝛄.blockParams[\\"default\\"];\\\\n      χ.emitContent(χ.resolve(χ.Globals[\\"add\\"])(index, 1));\\\\n      χ.emitContent(χ.resolveOrReturn(𝚪.this.message)());\\\\n      χ.emitContent(χ.resolveOrReturn(target)());\\\\n    }\\\\n    χ.Globals[\\"each\\"];\\\\n  }\\\\n  𝚪; χ;\\\\n})
+        |  hbs(0:255):   {{#each (array \\"world\\" \\"planet\\" \\"universe\\") as |target index|}}\\\\n  #{{add index 1}}: {{this.message}}, {{target}}!\\\\n{{/each}}\\\\n\\\\n{{! @glint-expect-error-next-statement: no @someArg arg }}\\\\n<div class=\\"some-style\\\\n  {{concat @someArg \\"foo\\" \\"bar\\" \\"baz\\"}}\\">\\\\n</div>
+        |  ts(131:902):  ({} as typeof import(\\"@glint/environment-ember-loose/-private/dsl\\")).templateForBackingValue(this, function(𝚪, χ: typeof import(\\"@glint/environment-ember-loose/-private/dsl\\")) {\\\\n  {\\\\n    const 𝛄 = χ.emitComponent(χ.resolve(χ.Globals[\\"each\\"])([\\"world\\", \\"planet\\", \\"universe\\"]));\\\\n    {\\\\n      const [target, index] = 𝛄.blockParams[\\"default\\"];\\\\n      χ.emitContent(χ.resolve(χ.Globals[\\"add\\"])(index, 1));\\\\n      χ.emitContent(χ.resolveOrReturn(𝚪.this.message)());\\\\n      χ.emitContent(χ.resolveOrReturn(target)());\\\\n    }\\\\n    χ.Globals[\\"each\\"];\\\\n  }\\\\n  // @glint-expect-error-next-statement\\\\n  {\\\\n    const 𝛄 = χ.emitElement(\\"div\\");\\\\n    χ.applyAttributes(𝛄.element, {\\\\n      class: \`\${χ.resolve(χ.Globals[\\"concat\\"])(𝚪.args.someArg, \\"foo\\", \\"bar\\", \\"baz\\")}\`,\\\\n    });\\\\n  }\\\\n  𝚪; χ;\\\\n})
         |
         | | Mapping: Template
-        | |  hbs(0:123):   {{#each (array \\"world\\" \\"planet\\" \\"universe\\") as |target index|}}\\\\n  #{{add index 1}}: {{this.message}}, {{target}}!\\\\n{{/each}}
-        | |  ts(310:674):  {\\\\n    const 𝛄 = χ.emitComponent(χ.resolve(χ.Globals[\\"each\\"])([\\"world\\", \\"planet\\", \\"universe\\"]));\\\\n    {\\\\n      const [target, index] = 𝛄.blockParams[\\"default\\"];\\\\n      χ.emitContent(χ.resolve(χ.Globals[\\"add\\"])(index, 1));\\\\n      χ.emitContent(χ.resolveOrReturn(𝚪.this.message)());\\\\n      χ.emitContent(χ.resolveOrReturn(target)());\\\\n    }\\\\n    χ.Globals[\\"each\\"];\\\\n  }
+        | |  hbs(0:255):   {{#each (array \\"world\\" \\"planet\\" \\"universe\\") as |target index|}}\\\\n  #{{add index 1}}: {{this.message}}, {{target}}!\\\\n{{/each}}\\\\n\\\\n{{! @glint-expect-error-next-statement: no @someArg arg }}\\\\n<div class=\\"some-style\\\\n  {{concat @someArg \\"foo\\" \\"bar\\" \\"baz\\"}}\\">\\\\n</div>
+        | |  ts(310:891):  {\\\\n    const 𝛄 = χ.emitComponent(χ.resolve(χ.Globals[\\"each\\"])([\\"world\\", \\"planet\\", \\"universe\\"]));\\\\n    {\\\\n      const [target, index] = 𝛄.blockParams[\\"default\\"];\\\\n      χ.emitContent(χ.resolve(χ.Globals[\\"add\\"])(index, 1));\\\\n      χ.emitContent(χ.resolveOrReturn(𝚪.this.message)());\\\\n      χ.emitContent(χ.resolveOrReturn(target)());\\\\n    }\\\\n    χ.Globals[\\"each\\"];\\\\n  }\\\\n  // @glint-expect-error-next-statement\\\\n  {\\\\n    const 𝛄 = χ.emitElement(\\"div\\");\\\\n    χ.applyAttributes(𝛄.element, {\\\\n      class: \`\${χ.resolve(χ.Globals[\\"concat\\"])(𝚪.args.someArg, \\"foo\\", \\"bar\\", \\"baz\\")}\`,\\\\n    });\\\\n  }
         | |
         | | | Mapping: BlockStatement
         | | |  hbs(0:123):   {{#each (array \\"world\\" \\"planet\\" \\"universe\\") as |target index|}}\\\\n  #{{add index 1}}: {{this.message}}, {{target}}!\\\\n{{/each}}
@@ -160,6 +165,72 @@ describe('Transform: Debug utilities', () => {
         | | | | Mapping: Identifier
         | | | |  hbs(117:121): each
         | | | |  ts(662:666):  each
+        | | | |
+        | | |
+        | | | Mapping: TextContent
+        | | |  hbs(123:124):
+        | | |  ts(674:674):
+        | | |
+        | | | Mapping: MustacheCommentStatement
+        | | |  hbs(125:183): {{! @glint-expect-error-next-statement: no @someArg arg }}
+        | | |  ts(674:714):  // @glint-expect-error-next-statement
+        | | |
+        | | | Mapping: ElementNode
+        | | |  hbs(184:255): <div class=\\"some-style\\\\n  {{concat @someArg \\"foo\\" \\"bar\\" \\"baz\\"}}\\">\\\\n</div>
+        | | |  ts(714:891):  {\\\\n    const 𝛄 = χ.emitElement(\\"div\\");\\\\n    χ.applyAttributes(𝛄.element, {\\\\n      class: \`\${χ.resolve(χ.Globals[\\"concat\\"])(𝚪.args.someArg, \\"foo\\", \\"bar\\", \\"baz\\")}\`,\\\\n    });\\\\n  }
+        | | |
+        | | | | Mapping: AttrNode
+        | | | |  hbs(189:247): class=\\"some-style\\\\n  {{concat @someArg \\"foo\\" \\"bar\\" \\"baz\\"}}\\"
+        | | | |  ts(791:879):  class: \`\${χ.resolve(χ.Globals[\\"concat\\"])(𝚪.args.someArg, \\"foo\\", \\"bar\\", \\"baz\\")}\`,
+        | | | |
+        | | | | | Mapping: Identifier
+        | | | | |  hbs(189:194): class
+        | | | | |  ts(797:802):  class
+        | | | | |
+        | | | | | Mapping: ConcatStatement
+        | | | | |  hbs(195:247): \\"some-style\\\\n  {{concat @someArg \\"foo\\" \\"bar\\" \\"baz\\"}}\\"
+        | | | | |  ts(804:877):  \`\${χ.resolve(χ.Globals[\\"concat\\"])(𝚪.args.someArg, \\"foo\\", \\"bar\\", \\"baz\\")}\`
+        | | | | |
+        | | | | | | Mapping: MustacheStatement
+        | | | | | |  hbs(209:246): {{concat @someArg \\"foo\\" \\"bar\\" \\"baz\\"}}
+        | | | | | |  ts(807:875):  χ.resolve(χ.Globals[\\"concat\\"])(𝚪.args.someArg, \\"foo\\", \\"bar\\", \\"baz\\")
+        | | | | | |
+        | | | | | | | Mapping: PathExpression
+        | | | | | | |  hbs(211:217): concat
+        | | | | | | |  ts(817:836):  χ.Globals[\\"concat\\"]
+        | | | | | | |
+        | | | | | | | | Mapping: Identifier
+        | | | | | | | |  hbs(211:217): concat
+        | | | | | | | |  ts(828:834):  concat
+        | | | | | | | |
+        | | | | | | |
+        | | | | | | | Mapping: PathExpression
+        | | | | | | |  hbs(218:226): @someArg
+        | | | | | | |  ts(838:853):  𝚪.args.someArg
+        | | | | | | |
+        | | | | | | | | Mapping: Identifier
+        | | | | | | | |  hbs(219:226): someArg
+        | | | | | | | |  ts(846:853):  someArg
+        | | | | | | | |
+        | | | | | | |
+        | | | | | | | Mapping: StringLiteral
+        | | | | | | |  hbs(227:232): \\"foo\\"
+        | | | | | | |  ts(855:860):  \\"foo\\"
+        | | | | | | |
+        | | | | | | | Mapping: StringLiteral
+        | | | | | | |  hbs(233:238): \\"bar\\"
+        | | | | | | |  ts(862:867):  \\"bar\\"
+        | | | | | | |
+        | | | | | | | Mapping: StringLiteral
+        | | | | | | |  hbs(239:244): \\"baz\\"
+        | | | | | | |  ts(869:874):  \\"baz\\"
+        | | | | | | |
+        | | | | | |
+        | | | | |
+        | | | |
+        | | | | Mapping: TextContent
+        | | | |  hbs(248:249):
+        | | | |  ts(887:887):
         | | | |
         | | |
         | |

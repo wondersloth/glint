@@ -276,6 +276,11 @@ describe('CLI: single-pass typechecking', () => {
 
       {{! @glint-expect-error }}
       Hello.
+
+      {{! @glint-expect-error-next-element }}
+      <div class="some-style
+        {{concat @arg1 "foo" "bar" "baz"}}">
+      </div>
     `;
 
     project.write('my-component.ts', script);
@@ -292,5 +297,31 @@ describe('CLI: single-pass typechecking', () => {
         ~~~~~~~~~~~~~~~~~~~~~~~~~~
       "
     `);
+  });
+
+  test.only('reports correct diagnostics given @glint-expect-error-next-element directives', async () => {
+    project.setGlintConfig({ environment: 'ember-loose' });
+
+    let script = stripIndent`
+      import Component from '@ember/component';
+
+      export default class MyCoqmponent extends Component {}
+    `;
+
+    let template = stripIndent`
+      {{! @glint-expect-error-next-element }}
+      <div class="some-style
+        {{concat @arg1 "foo" "bar" "baz"}}">
+      </div>
+    `;
+
+    project.write('my-component.ts', script);
+    project.write('my-component.hbs', template);
+
+    let checkResult = await project.check({ reject: false });
+
+    expect(checkResult.exitCode).toBe(0);
+    expect(checkResult.stdout).toEqual('');
+    expect(stripAnsi(checkResult.stderr)).toEqual('');
   });
 });

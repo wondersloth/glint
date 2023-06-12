@@ -23,7 +23,7 @@ export type CorrelatedSpan = {
   mapping?: MappingTree;
 };
 
-export type DirectiveKind = 'ignore' | 'expect-error';
+export type DirectiveKind = 'ignore' | 'expect-error' | 'expect-error-next-element';
 export type Directive = {
   kind: DirectiveKind;
   source: SourceFile;
